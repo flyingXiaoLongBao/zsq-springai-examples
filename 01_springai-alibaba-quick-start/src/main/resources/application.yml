@@ -1,0 +1,20 @@
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: utf-8
+      enabled: true
+      force: true
+
+spring:
+  ai:
+    zhipuai:
+      api-key: 2382ced0711b461e903b64c4f499d46c.JAOLXIEm9Wq8mLOu  # 智谱 API Key
+      base-url: "https://open.bigmodel.cn/api/paas"   #智谱请求路径
+      chat:
+        options:
+          model: glm-4.6
+
+  http:
+    client:
+      read-timeout: 1000000
