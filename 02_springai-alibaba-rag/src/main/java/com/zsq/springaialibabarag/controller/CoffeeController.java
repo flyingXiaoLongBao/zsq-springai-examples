@@ -8,9 +8,13 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +30,11 @@ public class CoffeeController {
     private final VectorStore vectorStore;
     private final ChatClient chatClient;
 
-    public CoffeeController(VectorStore vectorStore, ChatClient.Builder chatClientBuilder) {
+    public CoffeeController(
+            VectorStore vectorStore,
+            ChatClient.Builder chatClientBuilder,
+            ToolCallbackProvider toolCallbackProvider
+    ) {
         this.vectorStore = vectorStore;
 
         VectorStoreDocumentRetriever vectorStoreDocumentRetriever = VectorStoreDocumentRetriever.builder()
@@ -38,6 +46,7 @@ public class CoffeeController {
         RetrievalAugmentationAdvisor retrievalAugmentationAdvisor= RetrievalAugmentationAdvisor.builder()
                 .documentRetriever(vectorStoreDocumentRetriever)
                 .build();
+
         MessageWindowChatMemory messageWindowChatMemory = MessageWindowChatMemory.builder()
                 .maxMessages(20)
                 .build();
@@ -46,6 +55,7 @@ public class CoffeeController {
 
         chatClient = chatClientBuilder
                 .defaultAdvisors(retrievalAugmentationAdvisor, messageChatMemoryAdvisor)
+                .defaultToolCallbacks(toolCallbackProvider.getToolCallbacks())
                 .build();
     }
 
@@ -104,9 +114,16 @@ public class CoffeeController {
     public String ragAskQuestion(
             @RequestParam("question") String question,
             @RequestParam("conversationId") String conversationId) {
-        return chatClient.prompt()
-                .system("你是ZSQ咖啡的服务员，你需要回答用户的问题.")
-                .user(question)
+
+        Prompt prompt = new Prompt(
+                List.of(
+                        new SystemMessage("你是ZSQ咖啡的服务员，你需要回答用户的问题."),
+                        new UserMessage(question)
+                )
+        );
+
+        //使用对话记忆功能需要提前声明Prompt，否则不生效
+        return chatClient.prompt(prompt)
                 .advisors(
                         advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, conversationId)
                 )

@@ -1,6 +1,6 @@
 # 服务器配置
 server:
-  port: 8080 # 应用服务监听端口，默认8080
+  port: 8888 # 应用服务监听端口，默认8080
 
 spring:
   # 应用基本信息配置
@@ -19,6 +19,15 @@ spring:
         options:
           model: embedding-3  # 使用的嵌入模型名称（embedding-3）
           dimensions: 256  # 嵌入向量的维度（256维）
+
+    mcp:
+      client:
+        sse:
+          connections:
+            timeTool:
+              url: http://localhost:8080 # mcp服务url
+            fetcher:
+              url: http://zserver.top:3000
 
     # 向量存储配置
     vectorstore:
