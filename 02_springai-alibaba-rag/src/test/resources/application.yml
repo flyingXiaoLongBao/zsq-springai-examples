@@ -1,7 +1,0 @@
-spring:
-  ai:
-    zhipuai:
-      api-key: 2382ced0711b461e903b64c4f499d46c.JAOLXIEm9Wq8mLOu
-    mcp:
-      client:
-        enabled: false

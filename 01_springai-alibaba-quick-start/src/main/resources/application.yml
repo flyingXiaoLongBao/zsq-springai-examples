@@ -13,7 +13,7 @@ spring:
       base-url: "https://open.bigmodel.cn/api/paas"   #智谱请求路径
       chat:
         options:
-          model: glm-4.6
+          model: glm-4.5-air
 
   http:
     client:
