@@ -1,7 +1,5 @@
 package com.zsq.springaialibabaquickstart.controller;
 
-
-import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
@@ -13,7 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.util.List;
 
 @RestController
@@ -33,17 +30,16 @@ public class ZhipuChatController {
 
     @GetMapping("/simple")
     public String simple(@RequestParam(name = "query") String query) {
-        //调用模型
+        // 调用模型
         return chatModel.call(query);
     }
 
     @GetMapping("/message")
     public String message(@RequestParam(name = "query") String query) {
-        //调用模型
+        // 调用模型
         return chatModel.call(
                 new SystemMessage("你是一个幽默的AI助手，你的每句话都自带喜感。"),
-                new UserMessage(query)
-        );
+                new UserMessage(query));
     }
 
     @GetMapping("/chatOptions")
@@ -51,12 +47,10 @@ public class ZhipuChatController {
         Prompt prompt = new Prompt(
                 List.of(
                         new SystemMessage("你是一个风趣幽默的AI助手"),
-                        new UserMessage(query)
-                ),
+                        new UserMessage(query)),
                 ZhiPuAiChatOptions.builder()
                         .temperature(0.2)
-                        .build()
-        );
+                        .build());
 
         ChatResponse chatResponse = chatModel.call(prompt);
 

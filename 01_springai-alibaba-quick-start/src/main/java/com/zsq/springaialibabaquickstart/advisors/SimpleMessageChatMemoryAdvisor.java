@@ -44,11 +44,6 @@ public class SimpleMessageChatMemoryAdvisor implements BaseAdvisor {
         String conversationId = chatClientResponse.context().get("conversationId").toString();
         List<Message> hisMessages = chatMemory.get(conversationId);
 
-        //获取response中ai的消息，添加到会话中
-        if (Objects.isNull(chatClientResponse)) {
-            return chatClientResponse;
-        }
-
         AssistantMessage assistantMessage = chatClientResponse
                 .chatResponse()
                 .getResult()
