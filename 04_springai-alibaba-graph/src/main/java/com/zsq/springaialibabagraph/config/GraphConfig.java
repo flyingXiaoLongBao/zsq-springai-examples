@@ -3,16 +3,17 @@ package com.zsq.springaialibabagraph.config;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.StateGraph;
+import com.alibaba.cloud.ai.graph.action.AsyncEdgeAction;
 import com.alibaba.cloud.ai.graph.action.AsyncNodeAction;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;
-import com.zsq.springaialibabagraph.node.SentenceConstructionNode;
-import com.zsq.springaialibabagraph.node.TranslationNode;
+import com.zsq.springaialibabagraph.node.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import java.util.Map;
+
 
 
 @Slf4j
@@ -93,6 +94,54 @@ public class GraphConfig {
         stateGraph.addEdge("TranslationNode", StateGraph.END);
 
         //编译状态图 放入容器
+        return stateGraph.compile();
+    }
+
+    @Bean("conditionalGraph")
+    public CompiledGraph conditionalGraph() throws GraphStateException{
+        //创建状态图
+        StateGraph stateGraph = new StateGraph(
+                "conditionalGraph",
+                () -> Map.of(
+                        "topic", new ReplaceStrategy(),
+                        "joke", new ReplaceStrategy(),
+                        "evaluation", new ReplaceStrategy()
+                )
+        );
+
+        //添加结点
+        stateGraph.addNode("GenerateJokeNode",
+                AsyncNodeAction.node_async(new GenerateJokeNode(chatClientBuilder))
+                );
+        stateGraph.addNode("EvaluateJokeNode",
+                AsyncNodeAction.node_async(new EvaluateJokeNode(chatClientBuilder))
+                );
+        stateGraph.addNode("EnhanceJokeQualityNode",
+                AsyncNodeAction.node_async(new EnhanceJokeQualityNode(chatClientBuilder))
+                );
+
+        //添加边
+        stateGraph.addEdge(StateGraph.START, "GenerateJokeNode");
+        stateGraph.addEdge("GenerateJokeNode", "EvaluateJokeNode");
+        stateGraph.addConditionalEdges(
+                "EvaluateJokeNode",
+                AsyncEdgeAction.edge_async(
+                        state -> {
+                            String evaluation = state.value("evaluation","不优秀");
+                            if (evaluation.equals("优秀")) {
+                                return StateGraph.END;
+                            } else {
+                                return "EnhanceJokeQualityNode";
+                            }
+                        }
+                ),
+                Map.of(
+                        "EnhanceJokeQualityNode", "EnhanceJokeQualityNode",
+                        StateGraph.END, StateGraph.END
+                )
+        );
+        stateGraph.addEdge("EnhanceJokeQualityNode", StateGraph.END);
+        //编译图
         return stateGraph.compile();
     }
 }

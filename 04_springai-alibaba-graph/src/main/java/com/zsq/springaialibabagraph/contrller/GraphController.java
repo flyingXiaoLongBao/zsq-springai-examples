@@ -20,13 +20,17 @@ import java.util.Optional;
 public class GraphController {
     private final CompiledGraph quickStartGraph;
     private final CompiledGraph simpleGraph;
+    private final CompiledGraph conditionalGraph;
 
 
     public GraphController(
             @Qualifier("quickStartGraph") CompiledGraph quickStartGraph,
-            @Qualifier("simpleGraph") CompiledGraph simpleGraph) {
+            @Qualifier("simpleGraph") CompiledGraph simpleGraph,
+            @Qualifier("conditionalGraph") CompiledGraph conditionalGraph)
+    {
         this.quickStartGraph = quickStartGraph;
         this.simpleGraph = simpleGraph;
+        this.conditionalGraph = conditionalGraph;
     }
 
     @GetMapping("/quickStartGraph")
@@ -45,5 +49,15 @@ public class GraphController {
                 "sentence:" + overAllStateOptional.get().value("sentence").get() + "\n" +
                 "translation:" + overAllStateOptional.get().value("translation").get();
 
+    }
+
+    @GetMapping("/conditionalGraph")
+    public String conditionalGraph(@RequestParam("topic") String topic){
+        Optional<OverAllState> overAllStateOptional = conditionalGraph.call(Map.of("topic", topic));
+
+        return
+                "topic::" + topic + '\n' +
+                        "evaluation:" + overAllStateOptional.get().value("evaluation").get() + '\n' +
+                        "joke:" + overAllStateOptional.get().value("joke").get();
     }
 }
