@@ -127,20 +127,68 @@ public class GraphConfig {
                 "EvaluateJokeNode",
                 AsyncEdgeAction.edge_async(
                         state -> {
-                            String evaluation = state.value("evaluation","不优秀");
-                            if (evaluation.equals("优秀")) {
-                                return StateGraph.END;
+                            int evaluation = state.value("evaluation",0);
+                            if (evaluation >= 8) {
+                                return "优秀";
                             } else {
-                                return "EnhanceJokeQualityNode";
+                                return "不够优秀";
                             }
                         }
                 ),
                 Map.of(
-                        "EnhanceJokeQualityNode", "EnhanceJokeQualityNode",
-                        StateGraph.END, StateGraph.END
+                        "优秀", StateGraph.END,
+                        "不够优秀", "EnhanceJokeQualityNode"
                 )
         );
         stateGraph.addEdge("EnhanceJokeQualityNode", StateGraph.END);
+        //编译图
+        return stateGraph.compile();
+    }
+
+    @Bean("loopGraph")
+    public CompiledGraph loopGraph() throws GraphStateException{
+        //创建状态图
+        StateGraph stateGraph = new StateGraph(
+                "loopGraph",
+                () -> Map.of(
+                        "topic", new ReplaceStrategy(),
+                        "joke", new ReplaceStrategy(),
+                        "evaluation", new ReplaceStrategy()
+                )
+        );
+
+        //添加结点
+        stateGraph.addNode("GenerateJokeNode",
+                AsyncNodeAction.node_async(new GenerateJokeNode(chatClientBuilder))
+        );
+        stateGraph.addNode("EvaluateJokeNode",
+                AsyncNodeAction.node_async(new EvaluateJokeNode(chatClientBuilder))
+        );
+        stateGraph.addNode("EnhanceJokeQualityNode",
+                AsyncNodeAction.node_async(new EnhanceJokeQualityNode(chatClientBuilder))
+        );
+
+        //添加边
+        stateGraph.addEdge(StateGraph.START, "GenerateJokeNode");
+        stateGraph.addEdge("GenerateJokeNode", "EvaluateJokeNode");
+        stateGraph.addConditionalEdges(
+                "EvaluateJokeNode",
+                AsyncEdgeAction.edge_async(
+                        state -> {
+                            int evaluation = state.value("evaluation",0);
+                            if (evaluation >= 8) {
+                                return "优秀";
+                            } else {
+                                return "不够优秀";
+                            }
+                        }
+                ),
+                Map.of(
+                        "优秀", StateGraph.END,
+                        "不够优秀", "EnhanceJokeQualityNode"
+                )
+        );
+        stateGraph.addEdge("EnhanceJokeQualityNode", "EvaluateJokeNode");
         //编译图
         return stateGraph.compile();
     }

@@ -11,7 +11,7 @@ spring:
   ai:
     # 智谱AI大模型配置
     zhipuai:
-      api-key: 2382ced0711b461e903b64c4f499d46c.JAOLXIEm9Wq8mLOu  # 智谱API密钥（从环境变量ZHIPU_KEY获取）
+      api-key: ${ZHIPU_KEY}  # 智谱API密钥（从环境变量ZHIPU_KEY获取）
       chat:
         options:
           model: glm-4.5-air  # 使用的聊天模型名称（GLM-4.6）

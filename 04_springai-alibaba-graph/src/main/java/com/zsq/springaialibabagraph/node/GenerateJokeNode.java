@@ -20,7 +20,7 @@ public class GenerateJokeNode implements NodeAction {
         String topic = state.value("topic", "");
 
         //设置提示词
-        PromptTemplate promptTemplate = new PromptTemplate("你需要写一个关于指定主题的短笑话。要求返回的结果中只能包含笑话的内容" +
+        PromptTemplate promptTemplate = new PromptTemplate("你需要写一个关于指定主题的长笑话(500字以上，剧情完善，逻辑合理)。要求返回的结果中只能包含笑话的内容" +
                 "主题:{topic}");
         promptTemplate.add("topic",topic);
         String prompt = promptTemplate.render();

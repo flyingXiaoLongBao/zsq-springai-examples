@@ -21,16 +21,20 @@ public class GraphController {
     private final CompiledGraph quickStartGraph;
     private final CompiledGraph simpleGraph;
     private final CompiledGraph conditionalGraph;
+    private final CompiledGraph loopGraph;
 
 
     public GraphController(
             @Qualifier("quickStartGraph") CompiledGraph quickStartGraph,
             @Qualifier("simpleGraph") CompiledGraph simpleGraph,
-            @Qualifier("conditionalGraph") CompiledGraph conditionalGraph)
+            @Qualifier("conditionalGraph") CompiledGraph conditionalGraph,
+            @Qualifier("loopGraph") CompiledGraph loopGraph
+            )
     {
         this.quickStartGraph = quickStartGraph;
         this.simpleGraph = simpleGraph;
         this.conditionalGraph = conditionalGraph;
+        this.loopGraph = loopGraph;
     }
 
     @GetMapping("/quickStartGraph")
@@ -46,7 +50,7 @@ public class GraphController {
 
         return
                 "word:" + word + "\n" +
-                "sentence:" + overAllStateOptional.get().value("sentence").get() + "\n" +
+                "sentence:" + overAllStateOptional.flatMap(allStateOptional -> allStateOptional.value("sentence")).get() + "\n" +
                 "translation:" + overAllStateOptional.get().value("translation").get();
 
     }
@@ -56,8 +60,19 @@ public class GraphController {
         Optional<OverAllState> overAllStateOptional = conditionalGraph.call(Map.of("topic", topic));
 
         return
-                "topic::" + topic + '\n' +
+                "topic:" + topic + '\n' +
                         "evaluation:" + overAllStateOptional.get().value("evaluation").get() + '\n' +
                         "joke:" + overAllStateOptional.get().value("joke").get();
     }
+
+    @GetMapping("/loopGraph")
+    public String loopGraph(@RequestParam("topic") String topic){
+        Optional<OverAllState> overAllStateOptional = loopGraph.call(Map.of("topic", topic));
+
+        return
+                "topic:" + topic + '\n' +
+                        "evaluation:" + overAllStateOptional.get().value("evaluation").get() + '\n' +
+                        "joke:" + overAllStateOptional.get().value("joke").get();
+    }
+
 }
