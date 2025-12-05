@@ -66,12 +66,23 @@ public class GraphController {
     }
 
     @GetMapping("/loopGraph")
-    public String loopGraph(@RequestParam("topic") String topic){
-        Optional<OverAllState> overAllStateOptional = loopGraph.call(Map.of("topic", topic));
+    public String loopGraph(
+            @RequestParam("topic") String topic,
+            @RequestParam("maxLoopCount") int maxLoopCount,
+            @RequestParam("threshold") int threshold
+    ){
+        Optional<OverAllState> overAllStateOptional = loopGraph.call(
+                Map.of(
+                        "topic", topic,
+                        "maxLoopCount", maxLoopCount,
+                        "threshold", threshold
+                        )
+        );
 
         return
                 "topic:" + topic + '\n' +
                         "evaluation:" + overAllStateOptional.get().value("evaluation").get() + '\n' +
+                        "loopCount:" + overAllStateOptional.get().value("loopCount").get() + '\n' +
                         "joke:" + overAllStateOptional.get().value("joke").get();
     }
 

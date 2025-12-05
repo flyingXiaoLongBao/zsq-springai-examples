@@ -153,7 +153,10 @@ public class GraphConfig {
                 () -> Map.of(
                         "topic", new ReplaceStrategy(),
                         "joke", new ReplaceStrategy(),
-                        "evaluation", new ReplaceStrategy()
+                        "evaluation", new ReplaceStrategy(),
+                        "loopCount", new ReplaceStrategy(),
+                        "maxLoopCount", new ReplaceStrategy(),
+                        "threshold", new ReplaceStrategy()
                 )
         );
 
@@ -176,16 +179,20 @@ public class GraphConfig {
                 AsyncEdgeAction.edge_async(
                         state -> {
                             int evaluation = state.value("evaluation",0);
-                            if (evaluation >= 8) {
-                                return "优秀";
+                            int loopCount = state.value("loopCount",0);
+                            int maxLoopCount = state.value("maxLoopCount",10);
+                            int threshold = state.value("threshold",6);
+
+                            if (evaluation >= threshold || loopCount > maxLoopCount) {
+                                return "break";
                             } else {
-                                return "不够优秀";
+                                return "loop";
                             }
                         }
                 ),
                 Map.of(
-                        "优秀", StateGraph.END,
-                        "不够优秀", "EnhanceJokeQualityNode"
+                        "break", StateGraph.END,
+                        "loop", "EnhanceJokeQualityNode"
                 )
         );
         stateGraph.addEdge("EnhanceJokeQualityNode", "EvaluateJokeNode");

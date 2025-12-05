@@ -19,7 +19,7 @@ public class ZSQCallAdvisor1 implements CallAdvisor {
 
     @Override
     public String getName() {
-        return "SGCallAdvisor1";
+        return "ZSQCallAdvisor1";
     }
 
     @Override

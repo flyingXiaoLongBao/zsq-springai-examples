@@ -19,6 +19,7 @@ public class EvaluateJokeNode implements NodeAction {
     public Map<String, Object> apply(OverAllState state) throws Exception {
         //从状态中获取生成的笑话
         String joke = state.value("joke", "");
+        int loopCount = state.value("loopCount", 0);
 
         //设置提示词模板
         PromptTemplate promptTemplate = new PromptTemplate(
@@ -34,6 +35,9 @@ public class EvaluateJokeNode implements NodeAction {
                 .call()
                 .content();
 
-        return Map.of("evaluation", Integer.parseInt(content));
+        loopCount++;
+        return Map.of(
+                "evaluation", Integer.parseInt(content),
+                "loopCount", loopCount);
     }
 }

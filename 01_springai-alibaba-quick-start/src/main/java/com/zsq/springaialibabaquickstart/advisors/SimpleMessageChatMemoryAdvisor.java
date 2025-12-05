@@ -19,19 +19,22 @@ public class SimpleMessageChatMemoryAdvisor implements BaseAdvisor {
 
     @Override
     public ChatClientRequest before(ChatClientRequest chatClientRequest, AdvisorChain advisorChain) {
-        //通过会话id查询之前的对话记录
+        // 步骤1: 获取会话ID
         String conversationId = chatClientRequest.context().get("conversationId").toString();
-        //把这次请求的信息添加到对话记录中
+
+        // 步骤2: 查询或创建该会话的历史消息
         List<Message> messages = chatMemory.get(conversationId);
         if (messages == null) {
             messages = new ArrayList<>();
             chatMemory.put(conversationId, messages);
         }
-        //把添加后记录的List<Message>放入请求中
+
+        // 步骤3: 将当前请求的消息添加到历史记录
         List<Message> requestMessages = chatClientRequest.prompt().getInstructions();
         messages.addAll(requestMessages);
         chatMemory.put(conversationId, messages);
 
+        // 步骤4: 构建新的请求，使用完整的对话历史
         return chatClientRequest
                 .mutate()
                 .prompt(new Prompt(messages, chatClientRequest.prompt().getOptions()))
@@ -40,18 +43,27 @@ public class SimpleMessageChatMemoryAdvisor implements BaseAdvisor {
 
     @Override
     public ChatClientResponse after(ChatClientResponse chatClientResponse, AdvisorChain advisorChain) {
-        //通过会话id查询之前的对话记录
+        // 步骤1: 获取会话ID
         String conversationId = chatClientResponse.context().get("conversationId").toString();
         List<Message> hisMessages = chatMemory.get(conversationId);
 
+        // 步骤2: 提取AI的回复
         AssistantMessage assistantMessage = chatClientResponse
                 .chatResponse()
                 .getResult()
                 .getOutput();
 
+        // 步骤3: 将AI回复添加到历史记录
         hisMessages.add(assistantMessage);
         chatMemory.put(conversationId, hisMessages);
+
+        // 步骤4: 返回响应（不做修改）
         return chatClientResponse;
+    }
+
+    @Override
+    public String getName() {
+        return "SimpleMessageChatMemoryAdvisor";
     }
 
     @Override
